@@ -1,5 +1,6 @@
 package com.example.whstickermaker2.ui.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -9,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.whstickermaker2.data.StickerPackDataSource
 import com.example.whstickermaker2.ui.scene.CenterHelloWorldScreen
+import com.example.whstickermaker2.ui.scene.ImagePickerScreen
 import com.example.whstickermaker2.ui.scene.ListStickerPacks
 import com.example.whstickermaker2.ui.scene.SmallExample
 
@@ -29,6 +31,13 @@ fun Navigation() {
         }
         composable(Screen.StickerScreen.route) {
             CenterHelloWorldScreen(navController)
+        }
+        composable(Screen.ImagePickerScreen.route) {
+            ImagePickerScreen(
+                onImageSelected = { uri ->
+                    val encodedUri = Uri.encode(uri.toString())
+                }
+            )
         }
     }
 }
