@@ -1,53 +1,19 @@
 package com.example.whstickermaker2.ui.scene
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-
-import com.example.whstickermaker2.model.PackModel
+import androidx.navigation.NavController
 
 @Composable
-fun StickerPackCard(packModel: PackModel, modifier: Modifier = Modifier){
-    Card(modifier = modifier) {
-        Column {
-            Text(
-                text = packModel.name,
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Text(
-                text = packModel.author,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                style = MaterialTheme.typography.headlineSmall
-            )
-        }
-    }
-}
-
-@Composable
-fun ListStickerPacks(
-    packInfoList: List<PackModel>,
-    modifier: Modifier = Modifier
-){
-    LazyColumn(
-        modifier = modifier
+fun CenterHelloWorldScreen(navController: NavController) {
+    Box(
+        modifier = Modifier.fillMaxSize(), // Fills the entire available screen
+        contentAlignment = Alignment.Center // Centers all content within the Box
     ) {
-        items(packInfoList) { packModel ->
-            StickerPackCard(
-                packModel = packModel,
-                modifier = Modifier.padding(8.dp)
-            )
-        }
+        Text(text = "Hello World")
     }
 }
-
