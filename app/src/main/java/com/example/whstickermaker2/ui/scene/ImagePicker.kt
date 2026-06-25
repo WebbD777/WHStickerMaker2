@@ -8,7 +8,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import android.net.Uri
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ImagePickerScreen(onImageSelected: (Uri) -> Unit) {

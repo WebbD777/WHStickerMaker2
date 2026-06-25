@@ -57,7 +57,7 @@ fun ListStickerPacks(
                 packModel = packModel,
                 modifier = Modifier.padding(8.dp),
                 onCardClick = {
-                  navController.navigate(Screen.ImagePickerScreen.route)
+                  navController.navigate(Screen.StickerScreen.route)
                 }
             )
         }
