@@ -1,4 +1,4 @@
-package com.example.whstickermaker2.data.database.table
+package com.example.whstickermaker2.model.database.table
 
 import androidx.room3.Entity
 import androidx.room3.PrimaryKey
@@ -8,7 +8,7 @@ data class StickerPackTable(
     @PrimaryKey(autoGenerate = true)
     val packId: Int? = 0,
     val name: String,
-    val trayIconFileName: String,
+    val trayIcon: String,
     val imageDataVersion: Int,
     val isAnimated: Boolean,
     val createdAt: Long

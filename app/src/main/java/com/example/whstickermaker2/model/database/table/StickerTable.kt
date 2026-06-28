@@ -1,4 +1,4 @@
-package com.example.whstickermaker2.data.database.table
+package com.example.whstickermaker2.model.database.table
 
 import androidx.room3.Entity
 import androidx.room3.ForeignKey
