@@ -1,76 +1,55 @@
 package com.example.whstickermaker2.ui.viewmodel
 
-import android.app.Application
-import android.net.Uri
-import androidx.core.content.FileProvider
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.whstickermaker2.data.StickerPackDataSource
-import com.example.whstickermaker2.model.PackModel
-import com.example.whstickermaker2.utils.image.convertImageToSticker
-import com.example.whstickermaker2.utils.image.getAllStickerUrisFromTestDirectory
-import kotlinx.coroutines.Dispatchers
+import androidx.lifecycle.ViewModel
+import com.example.whstickermaker2.event.StickerEvent
+import com.example.whstickermaker2.event.StickerPackEvent
+import com.example.whstickermaker2.model.database.dao.StickerDAO
+import com.example.whstickermaker2.state.StickerState
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class StickerViewModel(application: Application) : AndroidViewModel(application) {
+class StickerViewModel(
+    private val dao : StickerDAO
+) : ViewModel() {
+    // handles user input like name, author, etc
+    private val _state = MutableStateFlow(StickerState())
 
-    private val stickerPackDataSource = StickerPackDataSource()
+    // handles the list from the database
+    private val _stickerPacks = dao.getAllStickers()
 
-    private val _stickerPacks = MutableStateFlow<List<PackModel>>(emptyList())
-    val stickerPacks: StateFlow<List<PackModel>> = _stickerPacks.asStateFlow()
-
-    private val _currentPackStickers = MutableStateFlow<List<Uri>>(emptyList())
-    val currentPackStickers: StateFlow<List<Uri>> = _currentPackStickers.asStateFlow()
-
-    init {
-        loadPacks()
-    }
-
-    private fun loadPacks() {
-        viewModelScope.launch {
-            val packs = withContext(Dispatchers.IO) {
-                stickerPackDataSource.loadStickerPacks()
+    val state = _state.asStateFlow()
+    fun onEvent(event: StickerPackEvent) {
+        when (event) {
+            is StickerEvent.SetStickerEmojis -> {
+                _state.update { it.copy(
+                    emojis = event.emojis
+                ) }
             }
-            _stickerPacks.value = packs
-        }
-    }
-
-    fun loadStickers() {
-        viewModelScope.launch {
-            val uris = withContext(Dispatchers.IO) {
-                getAllStickerUrisFromTestDirectory(getApplication())
+            is StickerEvent.SetStickerFilaName -> {
+                _state.update { it.copy(
+                    name = event.name
+                ) }
             }
-            _currentPackStickers.value = uris
-        }
-    }
-
-    fun addSticker(sourceUri: Uri) {
-        viewModelScope.launch {
-            val newStickerUri = withContext(Dispatchers.IO) {
-                val context = getApplication<Application>()
-                val uniqueFileName = "sticker_${System.currentTimeMillis()}.webp"
-                val stickerFile = convertImageToSticker(context, sourceUri, uniqueFileName)
-                
-                stickerFile?.let { file ->
-                    FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.fileprovider",
-                        file
+            is StickerEvent.SetStickerIsAnimated -> {
+                _state.update {
+                    it.copy(
+                        isAnimated = event.isAnimated
                     )
                 }
             }
-
-            if (newStickerUri != null) {
-                // Efficiently append the new sticker instead of re-scanning the whole directory
-                _currentPackStickers.update { currentList ->
-                    currentList + newStickerUri
-                }
+            is StickerEvent.SetStickerOrder -> {
+                _state.update { it.copy(
+                    order = event.order
+                ) }
             }
+            StickerPackEvent.SaveStickerPack -> {
+                val name = state.value.name
+                val emojis = state.value.emojis
+                val isAnimated = state.value.isAnimated
+                val order = state.value.order
+            }
+            else -> {/*Doen niks*/}
         }
     }
 }

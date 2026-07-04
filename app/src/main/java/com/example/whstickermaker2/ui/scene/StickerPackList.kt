@@ -25,12 +25,12 @@ import androidx.navigation.NavController
 
 import com.example.whstickermaker2.model.PackModel
 import com.example.whstickermaker2.ui.navigation.Screen
-import com.example.whstickermaker2.ui.viewmodel.StickerPackListViewModel
+import com.example.whstickermaker2.ui.viewmodel.StickerPackViewModel
 
 @Composable
 fun StickerPackListScreen(
     navController: NavController,
-    viewModel: StickerPackListViewModel = viewModel()
+    viewModel: StickerPackViewModel = viewModel()
 ) {
     val stickerPacks by viewModel.stickerPacks.collectAsState()
 
