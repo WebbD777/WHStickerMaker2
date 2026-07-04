@@ -19,7 +19,7 @@ import androidx.room3.Index
 )
 data class StickerTable(
     @PrimaryKey(autoGenerate = true)
-    val id: Int? = 0,
+    val id: Int = 0,
     val packId: Int,
     val fileName: String,
     val emojis: String,
