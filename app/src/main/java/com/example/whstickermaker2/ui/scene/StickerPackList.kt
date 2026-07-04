@@ -15,13 +15,37 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
 import com.example.whstickermaker2.model.PackModel
 import com.example.whstickermaker2.ui.navigation.Screen
+import com.example.whstickermaker2.ui.viewmodel.StickerPackListViewModel
+
+@Composable
+fun StickerPackListScreen(
+    navController: NavController,
+    viewModel: StickerPackListViewModel = viewModel()
+) {
+    val stickerPacks by viewModel.stickerPacks.collectAsState()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        ListStickerPacks(
+            navController = navController,
+            packInfoList = stickerPacks,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        SmallExample(onClick = {
+            // Future: Add new pack
+        })
+    }
+}
 
 @Composable
 fun StickerPackCard(packModel: PackModel, onCardClick: () -> Unit, modifier: Modifier = Modifier){

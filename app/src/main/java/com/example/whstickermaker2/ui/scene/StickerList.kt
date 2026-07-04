@@ -1,6 +1,5 @@
 package com.example.whstickermaker2.ui.scene
 
-import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -24,20 +23,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.example.whstickermaker2.utils.image.convertImageToSticker
-import com.example.whstickermaker2.utils.image.getAllStickerUrisFromTestDirectory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.example.whstickermaker2.ui.viewmodel.StickerPackViewModel
 
 @Composable
 fun CenterHelloWorldScreen(navController: NavController) {
@@ -50,41 +45,19 @@ fun CenterHelloWorldScreen(navController: NavController) {
 }
 
 @Composable
-fun ImageSelector(context: Context) {
-    val coroutineScope = rememberCoroutineScope()
+fun ImageSelector(viewModel: StickerPackViewModel = viewModel()) {
+    val uriList by viewModel.stickers.collectAsState()
 
-    // 1. Manage your URIs as a mutable state list so Compose tracks additions
-    val uriList = remember { mutableStateListOf<Uri>() }
-
-    // 2. Initial load of images when this screen is first opened
+    // Load stickers when the screen enters the composition
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            val initialUris = getAllStickerUrisFromTestDirectory(context)
-            withContext(Dispatchers.Main) {
-                uriList.addAll(initialUris)
-            }
-        }
+        viewModel.loadStickers()
     }
 
-    // 3. Trigger image processing inside the onResult callback, NOT the button click
     val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
             uri?.let { selectedUri ->
-                coroutineScope.launch(Dispatchers.IO) {
-                    // Generate a unique file name so you aren't constantly overwriting "sticker2.webp"
-                    val uniqueFileName = "sticker_${System.currentTimeMillis()}.webp"
-
-                    // Convert and save image
-                    convertImageToSticker(context, selectedUri, uniqueFileName)
-
-                    // Re-fetch the updated list from the directory and push it back to the UI thread
-                    val updatedUris = getAllStickerUrisFromTestDirectory(context)
-                    withContext(Dispatchers.Main) {
-                        uriList.clear()
-                        uriList.addAll(updatedUris)
-                    }
-                }
+                viewModel.addSticker(selectedUri)
             }
         }
     )

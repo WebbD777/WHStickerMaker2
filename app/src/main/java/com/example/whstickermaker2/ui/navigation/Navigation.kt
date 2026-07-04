@@ -1,16 +1,12 @@
 package com.example.whstickermaker2.ui.navigation
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.whstickermaker2.data.StickerPackDataSource
 import com.example.whstickermaker2.ui.scene.CenterHelloWorldScreen
 import com.example.whstickermaker2.ui.scene.ImageSelector
-import com.example.whstickermaker2.ui.scene.ListStickerPacks
-import com.example.whstickermaker2.ui.scene.SmallExample
+import com.example.whstickermaker2.ui.scene.StickerPackListScreen
 
 @Composable
 fun Navigation() {
@@ -18,17 +14,10 @@ fun Navigation() {
 
     NavHost(navController = navController, startDestination = Screen.StickerPackScreen.route) {
         composable(route = Screen.StickerPackScreen.route) {
-            ListStickerPacks(
-                navController = navController,
-                packInfoList = StickerPackDataSource().loadStickerPacks(),
-                modifier = Modifier
-                    .fillMaxSize()
-            )
-
-            SmallExample(onClick = {})
+            StickerPackListScreen(navController = navController)
         }
         composable(Screen.StickerScreen.route) {
-            ImageSelector(context = navController.context)
+            ImageSelector()
         }
         composable(Screen.ImagePickerScreen.route) {
             CenterHelloWorldScreen(navController)
