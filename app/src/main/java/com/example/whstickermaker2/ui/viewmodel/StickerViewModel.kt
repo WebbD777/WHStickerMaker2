@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.example.whstickermaker2.event.StickerEvent
 import com.example.whstickermaker2.event.StickerPackEvent
 import com.example.whstickermaker2.model.database.dao.StickerDAO
+import com.example.whstickermaker2.model.database.table.StickerTable
 import com.example.whstickermaker2.state.StickerState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,20 +35,14 @@ class StickerViewModel(
             is StickerEvent.SetStickerIsAnimated -> {
                 _state.update {
                     it.copy(
-                        isAnimated = event.isAnimated
+                        isAnimatedSticker = event.isAnimated
                     )
                 }
             }
-            is StickerEvent.SetStickerOrder -> {
-                _state.update { it.copy(
-                    order = event.order
-                ) }
-            }
-            StickerPackEvent.SaveStickerPack -> {
+            StickerEvent.SaveSticker -> {
                 val name = state.value.name
                 val emojis = state.value.emojis
-                val isAnimated = state.value.isAnimated
-                val order = state.value.order
+                val isAnimated = state.value.isAnimatedSticker
             }
             else -> {/*Doen niks*/}
         }

@@ -1,12 +1,15 @@
 package com.example.whstickermaker2.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.whstickermaker2.event.StickerPackEvent
 import com.example.whstickermaker2.model.database.dao.StickerPackDAO
+import com.example.whstickermaker2.model.database.table.StickerPackTable
 import com.example.whstickermaker2.state.StickerPackState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class StickerPackViewModel(
     private val dao : StickerPackDAO
@@ -22,15 +25,30 @@ class StickerPackViewModel(
         when(event){
             StickerPackEvent.SaveStickerPack -> {
                 val name = state.value.name
-                val author = state.value.author
                 val trayIcon = state.value.trayIcon
                 val imageDataVersion = state.value.imageDataVersion
                 val isAnimated = state.value.isAnimated
                 val createdAt = state.value.createdAt
-            }
-            is StickerPackEvent.SetStickerPackAuthor -> {
+
+                val stickerPack = StickerPackTable(
+                    name = name,
+                    trayIcon = trayIcon,
+                    imageDataVersion = imageDataVersion,
+                    isAnimated = isAnimated,
+                    createdAt = createdAt
+                )
+
+                // Insert the sticker pack into the database
+                // using a coroutine
+                viewModelScope.launch {
+                    dao.insertStickerPack(stickerPack)
+                }
+
+                // Done adding pack
                 _state.update { it.copy(
-                    author = event.author
+                    isAddingStickerPack = false,
+                    name = "",
+                    trayIcon = "",
                 ) }
             }
             is StickerPackEvent.SetStickerPackCreatedAt -> {
@@ -58,6 +76,16 @@ class StickerPackViewModel(
             is StickerPackEvent.SetStickerPackTrayIcon -> {
                 _state.update { it.copy(
                     trayIcon = event.trayIcon
+                ) }
+            }
+            is StickerPackEvent.ShowDialog -> {
+                _state.update { it.copy(
+                    isAddingStickerPack = true
+                ) }
+            }
+            is StickerPackEvent.HideDialog -> {
+                _state.update { it.copy(
+                    isAddingStickerPack = false
                 ) }
             }
             else -> {/*Doen niks*/}

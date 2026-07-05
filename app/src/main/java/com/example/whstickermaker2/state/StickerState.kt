@@ -3,7 +3,6 @@ package com.example.whstickermaker2.state
 data class StickerState(
     val name: String = "",
     val emojis: String = "",
-    val isAnimated: Boolean = false,
-    val order: Int = 0,
+    val isAnimatedSticker: Boolean = false,
     val isAddingSticker: Boolean = false
 )

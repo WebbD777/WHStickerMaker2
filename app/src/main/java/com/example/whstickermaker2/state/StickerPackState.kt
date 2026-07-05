@@ -2,7 +2,6 @@ package com.example.whstickermaker2.state
 
 data class StickerPackState(
     val name: String = "",
-    val author: String = "",
     val trayIcon: String = "",
     val imageDataVersion: Int = 0,
     val isAnimated: Boolean = false,
