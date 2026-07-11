@@ -88,7 +88,6 @@ class StickerPackViewModel(
                     isAddingStickerPack = false
                 ) }
             }
-            else -> {/*Doen niks*/}
         }
     }
 }

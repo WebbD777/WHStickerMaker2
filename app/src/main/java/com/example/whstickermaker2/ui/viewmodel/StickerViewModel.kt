@@ -20,14 +20,14 @@ class StickerViewModel(
     private val _stickerPacks = dao.getAllStickers()
 
     val state = _state.asStateFlow()
-    fun onEvent(event: StickerPackEvent) {
+    fun onEvent(event: StickerEvent) {
         when (event) {
             is StickerEvent.SetStickerEmojis -> {
                 _state.update { it.copy(
                     emojis = event.emojis
                 ) }
             }
-            is StickerEvent.SetStickerFilaName -> {
+            is StickerEvent.SetStickerFileName -> {
                 _state.update { it.copy(
                     name = event.name
                 ) }
@@ -39,12 +39,26 @@ class StickerViewModel(
                     )
                 }
             }
+            is StickerEvent.SelectingImage -> {
+                _state.update {
+                    it.copy(
+                        isSelectingImage = true
+                    )
+                }
+            }
+            is StickerEvent.ImageSelected -> {
+                _state.update {
+                    it.copy(
+                        isSelectingImage = false,
+                        imageUri = event.imageUri
+                    )
+                }
+            }
             StickerEvent.SaveSticker -> {
                 val name = state.value.name
                 val emojis = state.value.emojis
                 val isAnimated = state.value.isAnimatedSticker
             }
-            else -> {/*Doen niks*/}
         }
     }
 }
