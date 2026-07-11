@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -26,11 +27,14 @@ import com.example.sticky.event.StickerPackEvent
 import com.example.sticky.model.database.table.StickerPackTable
 import com.example.sticky.ui.navigation.Screen
 import com.example.sticky.ui.viewmodel.StickerPackViewModel
+import com.example.sticky.ui.viewmodel.ViewModelFactory
 
 @Composable
 fun StickerPackListScreen(
     navController: NavController,
-    viewModel: StickerPackViewModel = viewModel()
+    viewModel: StickerPackViewModel = viewModel(
+        factory = ViewModelFactory(LocalContext.current)
+    )
 ) {
     // Checks if db updates and reacts
     val stickerPacks by viewModel.stickerPacks.collectAsState(initial = emptyList())

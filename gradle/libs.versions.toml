@@ -7,13 +7,14 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.11.0"
 lifecycleViewmodelCompose = "2.11.0"
 activityCompose = "1.13.0"
+ksp = "2.3.10"
 kotlin = "2.4.0"
 composeBom = "2026.06.00"
 ui = "1.11.3"
 navigationCompose = "2.9.8"
 appcompat = "1.7.1"
-room3CommonJvm = "3.0.0-rc01"
-room3Runtime = "3.0.0-rc01"
+room3CommonJvm = "3.0.0"
+room3Runtime = "3.0.0"
 media3Database = "1.10.1"
 
 [libraries]
@@ -38,9 +39,11 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-room3-common-jvm = { group = "androidx.room3", name = "room3-common-jvm", version.ref = "room3CommonJvm" }
 androidx-room3-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room3Runtime" }
+androidx-room3-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room3CommonJvm" }
 androidx-media3-database = { group = "androidx.media3", name = "media3-database", version.ref = "media3Database" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 

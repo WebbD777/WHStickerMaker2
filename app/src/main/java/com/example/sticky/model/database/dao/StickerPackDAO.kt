@@ -1,8 +1,8 @@
 package com.example.sticky.model.database.dao
 
-import androidx.room.Dao
-import androidx.room.Query
-import androidx.room.Upsert
+import androidx.room3.Dao
+import androidx.room3.Query
+import androidx.room3.Upsert
 import com.example.sticky.model.database.table.StickerPackTable
 import kotlinx.coroutines.flow.Flow
 
@@ -12,7 +12,7 @@ interface StickerPackDAO {
     @Query("SELECT * FROM sticker_pack ORDER BY createdAt DESC")
     fun getAllStickerPacks(): Flow<List<StickerPackTable>>
 
-    @Query("DELETE FROM sticker_pack WHERE id = :id")
+    @Query("DELETE FROM sticker_pack WHERE packId = :packId")
     suspend fun deleteStickerPack(packId: Int)
 
     @Upsert
