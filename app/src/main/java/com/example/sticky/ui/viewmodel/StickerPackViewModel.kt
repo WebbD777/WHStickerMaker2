@@ -18,7 +18,7 @@ class StickerPackViewModel(
     // handles user input like name, author, etc
     private val _state = MutableStateFlow(StickerPackState())
     // handles the list from the database
-    private val _stickerPacks = dao.getAllStickerPacks()
+    val stickerPacks = dao.getAllStickerPacks()
 
     val state = _state.asStateFlow()
     fun onEvent(event: StickerPackEvent){

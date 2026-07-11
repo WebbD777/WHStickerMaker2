@@ -22,8 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-
-import com.example.sticky.model.PackModel
+import com.example.sticky.event.StickerPackEvent
+import com.example.sticky.model.database.table.StickerPackTable
 import com.example.sticky.ui.navigation.Screen
 import com.example.sticky.ui.viewmodel.StickerPackViewModel
 
@@ -32,7 +32,8 @@ fun StickerPackListScreen(
     navController: NavController,
     viewModel: StickerPackViewModel = viewModel()
 ) {
-    val stickerPacks by viewModel.stickerPacks.collectAsState()
+    // Checks if db updates and reacts
+    val stickerPacks by viewModel.stickerPacks.collectAsState(initial = emptyList())
 
     Box(modifier = Modifier.fillMaxSize()) {
         ListStickerPacks(
@@ -41,26 +42,19 @@ fun StickerPackListScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        SmallExample(onClick = {
-            // Future: Add new pack
+        AddPackFAB(onClick = {
+            viewModel.onEvent(StickerPackEvent.ShowDialog(true))
         })
     }
 }
 
 @Composable
-fun StickerPackCard(packModel: PackModel, onCardClick: () -> Unit, modifier: Modifier = Modifier){
+fun StickerPackCard(pack: StickerPackTable, onCardClick: () -> Unit, modifier: Modifier = Modifier){
     Card(modifier = modifier.clickable{onCardClick()}) {
         Column {
             Text(
-                text = packModel.name,
+                text = pack.name,
                 modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Text(
-                text = packModel.author,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
                 style = MaterialTheme.typography.headlineSmall
             )
         }
@@ -70,18 +64,18 @@ fun StickerPackCard(packModel: PackModel, onCardClick: () -> Unit, modifier: Mod
 @Composable
 fun ListStickerPacks(
     navController: NavController,
-    packInfoList: List<PackModel>,
+    packInfoList: List<StickerPackTable>,
     modifier: Modifier = Modifier
 ){
     LazyColumn(
         modifier = modifier
     ) {
-        items(packInfoList) { packModel ->
+        items(packInfoList) { pack ->
             StickerPackCard(
-                packModel = packModel,
+                pack = pack,
                 modifier = Modifier.padding(8.dp),
                 onCardClick = {
-                  navController.navigate(Screen.StickerScreen.route)
+                  navController.navigate(Screen.StickerScreen.createRoute(pack.packId))
                 }
             )
         }
@@ -89,19 +83,19 @@ fun ListStickerPacks(
 }
 
 @Composable
-fun SmallExample(onClick: () -> Unit) {
+fun AddPackFAB(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp), // Adds a nice margin from the screen edges
-        contentAlignment = Alignment.BottomEnd // Aligns content to the bottom right
+            .padding(16.dp),
+        contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
             onClick = { onClick() },
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.secondary
         ) {
-            Icon(Icons.Filled.Add, "Small floating action button.")
+            Icon(Icons.Filled.Add, "Add new sticker pack")
         }
     }
 }

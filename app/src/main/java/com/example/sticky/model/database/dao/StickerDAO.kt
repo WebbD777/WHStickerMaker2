@@ -8,12 +8,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StickerDAO {
-    @Query("SELECT * FROM sticker ORDER BY createdAt DESC")
-    fun getAllStickers(): Flow<List<StickerTable>>
+    @Query("SELECT * FROM sticker WHERE packId = :packId ORDER BY createdAt DESC")
+    fun getStickersByPack(packId: Int): Flow<List<StickerTable>>
 
     @Query("DELETE FROM sticker WHERE id = :id")
     suspend fun deleteSticker(id: Int)
 
     @Upsert
-    suspend fun insertStickerPack(stickers: StickerTable)
+    suspend fun insertSticker(sticker: StickerTable)
 }

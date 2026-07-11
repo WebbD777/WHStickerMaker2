@@ -24,4 +24,5 @@ data class StickerTable(
     val fileName: String,
     val emojis: String,
     val isAnimated: Boolean,
+    val createdAt: Long = System.currentTimeMillis()
 )
