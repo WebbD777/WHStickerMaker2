@@ -13,14 +13,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.sticky.ui.navigation.Navigation
-import com.example.sticky.ui.theme.WHStickerMaker2Theme
+import com.example.sticky.ui.theme.Sticky
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            WHStickerMaker2Theme {
+            Sticky {
                 Scaffold(
                     topBar = { TitleBar() }
                 ) { innerPadding -> // 1. Capture the padding values
@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
 fun TitleBar(modifier: Modifier = Modifier) {
     TopAppBar(
         title = {
-            Text("My App")
+            Text("Sticky")
         },
         modifier = modifier
     )

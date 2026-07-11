@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.media3.database)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.room3.common.jvm)
     implementation(libs.androidx.room3.runtime)

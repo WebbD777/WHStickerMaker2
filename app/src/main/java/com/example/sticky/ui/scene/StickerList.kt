@@ -37,6 +37,7 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.sticky.model.database.table.StickerTable
 import com.example.sticky.ui.viewmodel.StickerViewModel
+import com.example.sticky.ui.viewmodel.ViewModelFactory
 import com.example.sticky.utils.image.convertImageToSticker
 import java.io.File
 
@@ -53,7 +54,9 @@ fun CenterHelloWorldScreen(navController: NavController) {
 @Composable
 fun ImageSelector(
     packId: Int = -1, // Added packId parameter
-    viewModel: StickerViewModel = viewModel()
+    viewModel: StickerViewModel = viewModel(
+        factory = ViewModelFactory(LocalContext.current)
+    )
 ) {
     val context = LocalContext.current
     val stickerList by viewModel.stickers.collectAsState()
@@ -67,7 +70,7 @@ fun ImageSelector(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
             uri?.let { selectedUri ->
-                val fileName = "sticker_${System.currentTimeMillis()}.webp"
+                val fileName = "${packId}/sticker_${System.currentTimeMillis()}.webp"
                 val file = convertImageToSticker(context, selectedUri, fileName)
                 if (file != null) {
                     viewModel.addSticker(
