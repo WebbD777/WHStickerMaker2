@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "WHStickerMaker2"
+rootProject.name = "Sticky"
 include(":app")
  

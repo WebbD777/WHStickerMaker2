@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.whstickermaker2"
+    namespace = "com.example.sticky"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.whstickermaker2"
+        applicationId = "com.example.sticky"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
