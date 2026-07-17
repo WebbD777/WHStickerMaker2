@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,6 +40,7 @@ fun StickerPackListScreen(
 ) {
     // Checks if db updates and reacts
     val stickerPacks by viewModel.stickerPacks.collectAsState(initial = emptyList())
+    val state by viewModel.state.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         ListStickerPacks(
@@ -45,6 +48,19 @@ fun StickerPackListScreen(
             packInfoList = stickerPacks,
             modifier = Modifier.fillMaxSize()
         )
+
+        if (state.isAddingStickerPack) {
+            AddStickerDialog(
+                onDismiss = {
+                    viewModel.onEvent(StickerPackEvent.HideDialog(false))
+                },
+                onSave = { name ->
+                    viewModel.onEvent(StickerPackEvent.SetStickerPackName(name))
+                    viewModel.onEvent(StickerPackEvent.SetStickerPackCreatedAt(System.currentTimeMillis()))
+                    viewModel.onEvent(StickerPackEvent.SaveStickerPack)
+                }
+            )
+        }
 
         AddPackFAB(onClick = {
             viewModel.onEvent(StickerPackEvent.ShowDialog(true))
@@ -54,7 +70,10 @@ fun StickerPackListScreen(
 
 @Composable
 fun StickerPackCard(pack: StickerPackTable, onCardClick: () -> Unit, modifier: Modifier = Modifier){
-    Card(modifier = modifier.clickable{onCardClick()}) {
+    Card(modifier = modifier
+        .fillMaxWidth()
+        .height(100.dp)
+        .clickable{onCardClick()}) {
         Column {
             Text(
                 text = pack.name,
@@ -95,7 +114,7 @@ fun AddPackFAB(onClick: () -> Unit) {
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
-            onClick = { onClick() },
+            onClick = onClick,
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.secondary
         ) {
@@ -103,3 +122,5 @@ fun AddPackFAB(onClick: () -> Unit) {
         }
     }
 }
+
+
