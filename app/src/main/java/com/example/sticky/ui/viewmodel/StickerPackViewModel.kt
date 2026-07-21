@@ -34,7 +34,7 @@ class StickerPackViewModel(
                     name = name,
                     trayIcon = trayIcon,
                     imageDataVersion = imageDataVersion,
-                    isAnimated = isAnimated,
+                    isAnimated = true,
                     createdAt = createdAt
                 )
 
@@ -87,6 +87,34 @@ class StickerPackViewModel(
                 _state.update { it.copy(
                     isAddingStickerPack = false
                 ) }
+            }
+            is StickerPackEvent.SeedingStickers -> {
+                _state.update {
+                    it.copy(
+                        isSeeingStickers = true
+                    )
+                }
+            }
+            is StickerPackEvent.SelectingTrayIcon -> {
+                _state.update {
+                    it.copy(
+                        isSelectingTrayIcon = true
+                    )
+                }
+            }
+            is StickerPackEvent.DoneSeedingStickers -> {
+                _state.update {
+                    it.copy(
+                        isSeeingStickers = false
+                    )
+                }
+            }
+            is StickerPackEvent.DoneSelectingTrayIcon -> {
+                _state.update {
+                    it.copy(
+                        isSelectingTrayIcon = false
+                    )
+                }
             }
         }
     }

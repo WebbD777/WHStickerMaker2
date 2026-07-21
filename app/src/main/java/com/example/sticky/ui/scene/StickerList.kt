@@ -31,11 +31,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.sticky.event.StickerEvent
 import com.example.sticky.model.database.table.StickerTable
+import com.example.sticky.utils.image.convertImageToSticker
+import com.example.sticky.utils.image.getStickerUri
 import com.example.sticky.ui.viewmodel.StickerViewModel
 import com.example.sticky.ui.viewmodel.ViewModelFactory
 import com.example.sticky.utils.image.convertImageToSticker
@@ -59,7 +61,9 @@ fun ImageSelector(
     )
 ) {
     val context = LocalContext.current
-    val stickerList by viewModel.stickers.collectAsState()
+
+    val stickers by viewModel.stickers.collectAsState(initial = emptyList())
+    val state by viewModel.state.collectAsState()
 
     // Load stickers when the screen enters the composition
     LaunchedEffect(packId) {
@@ -69,28 +73,27 @@ fun ImageSelector(
     val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
-            uri?.let { selectedUri ->
-                val fileName = "${packId}/sticker_${System.currentTimeMillis()}.webp"
-                val file = convertImageToSticker(context, selectedUri, fileName)
-                if (file != null) {
-                    viewModel.addSticker(
-                        StickerTable(
-                            packId = packId,
-                            fileName = fileName,
-                            emojis = "",
-                            isAnimated = false
-                        )
-                    )
+            if (uri != null) {
+                viewModel.onEvent(StickerEvent.ImageSelected(uri))
+                val relativePath = convertImageToSticker(context, uri, packId, stickers.size)
+                if (relativePath != null) {
+                    viewModel.onEvent(StickerEvent.SetStickerFileName(relativePath))
+                    viewModel.onEvent(StickerEvent.SetStickerEmojis(""))
+                    viewModel.onEvent(StickerEvent.SetStickerIsAnimated(false))
+                    viewModel.onEvent(StickerEvent.SaveSticker)
                 }
+            } else {
+                viewModel.onEvent(StickerEvent.SelectingImage(false))
             }
         }
     )
 
     // Layout wrapping both the Grid and the Floating Button
     Box(modifier = Modifier.fillMaxSize()) {
-        StickerGridScreen(stickers = stickerList)
+        StickerGridScreen(stickers = stickers)
 
         AddstickerButton(onClick = {
+            viewModel.onEvent(StickerEvent.SelectingImage(true))
             singlePhotoPickerLauncher.launch(
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
             )
@@ -124,12 +127,7 @@ fun StickerGridScreen(stickers: List<StickerTable>, modifier: Modifier = Modifie
     ) {
         items(stickers, key = { it.id }) { sticker ->
             val uri = remember(sticker.fileName) {
-                val file = File(File(context.filesDir, "test"), sticker.fileName)
-                FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.fileprovider",
-                    file
-                )
+                getStickerUri(context, sticker.fileName)
             }
             
             Card(

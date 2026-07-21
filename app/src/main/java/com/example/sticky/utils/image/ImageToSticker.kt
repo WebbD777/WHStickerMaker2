@@ -11,7 +11,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-fun convertImageToSticker(context: Context, sourceUri: Uri?, targetFileName: String): File? {
+/**
+ * Converts a source image to a 512x512 WebP sticker and saves it in the pack's directory.
+ * Returns the relative path (e.g., "1/1.webp") to be stored in the database.
+ */
+fun convertImageToSticker(context: Context, sourceUri: Uri?, packId: Int, stickerCount: Int): String? {
     if (sourceUri == null) return null
     var inputStream: InputStream? = null
     return try {
@@ -19,19 +23,23 @@ fun convertImageToSticker(context: Context, sourceUri: Uri?, targetFileName: Str
         val originalBitmap = BitmapFactory.decodeStream(inputStream) ?: return null
 
         // 1. Resize the image to exactly 512x512 pixels
-        val resizedBitmap = resizeBitmap(originalBitmap, 512, 512)
+        val resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, 512, 512, true)
 
-        // 2. Create or target the specific "test" directory in internal files
-        val testDirectory = File(context.filesDir, "test")
-        if (!testDirectory.exists()) {
-            testDirectory.mkdirs() // Creates the "test" folder if it doesn't exist yet
+        // 2. Target the "packs" directory as the base, then the pack subdirectory
+        val baseDir = File(context.filesDir, "packs")
+        val packDir = File(baseDir, packId.toString())
+        if (!packDir.exists()) {
+            packDir.mkdirs()
         }
 
-        // 2. Safely compress the image to target WebP format keeping file size < 100KB
-        val outputFile = File(testDirectory, targetFileName) // fixed to use targetFileName
+        // 3. Save with a name based on the number of stickers in the table
+        val fileName = "${stickerCount + 1}.webp"
+        val outputFile = File(packDir, fileName)
+        
         val isCompressed = compressToWebP(resizedBitmap, outputFile)
 
-        if (isCompressed) outputFile else null
+        // Return the relative path for the DB (e.g., "1/1.webp")
+        if (isCompressed) "$packId/$fileName" else null
     } catch (e: Exception) {
         e.printStackTrace()
         null
@@ -41,10 +49,15 @@ fun convertImageToSticker(context: Context, sourceUri: Uri?, targetFileName: Str
 }
 
 /**
- * Resizes a Bitmap to exact dimensions.
+ * Generates a safe Content URI for a sticker using the relative path stored in the DB.
  */
-private fun resizeBitmap(source: Bitmap, width: Int, height: Int): Bitmap {
-    return Bitmap.createScaledBitmap(source, width, height, true)
+fun getStickerUri(context: Context, relativePath: String): Uri {
+    val file = File(File(context.filesDir, "packs"), relativePath)
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        file
+    )
 }
 
 /**
@@ -78,26 +91,4 @@ private fun compressToWebP(bitmap: Bitmap, targetFile: File): Boolean {
         e.printStackTrace()
         false
     }
-}
-
-fun getAllStickerUrisFromTestDirectory(context: Context): List<Uri> {
-    // 1. Target the "test" directory
-    val testDirectory = File(context.filesDir, "test")
-
-    // 2. If it doesn't exist or isn't a directory, return an empty list
-    if (!testDirectory.exists() || !testDirectory.isDirectory) {
-        return emptyList()
-    }
-
-    // 3. List all files, filter out any directories, and map them to safe Content URIs
-    return testDirectory.listFiles()
-        ?.filter { it.isFile }
-        ?.map { file ->
-            // Converts file path to a secure content:// URI
-            FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                file
-            )
-        } ?: emptyList()
 }

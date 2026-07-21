@@ -7,4 +7,6 @@ data class StickerPackState(
     val isAnimated: Boolean = false,
     val createdAt: Long = 0,
     val isAddingStickerPack: Boolean = false,
+    val isSeeingStickers: Boolean = false,
+    val isSelectingTrayIcon: Boolean = false
 )

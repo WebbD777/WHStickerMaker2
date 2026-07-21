@@ -9,4 +9,8 @@ sealed interface StickerPackEvent {
     data class SetStickerPackCreatedAt(val createdAt: Long) : StickerPackEvent
     data class ShowDialog(val isAddingPack: Boolean) : StickerPackEvent
     data class HideDialog(val isAddingPack: Boolean) : StickerPackEvent
+    data class SeedingStickers(val isSeeingStickers: Boolean) : StickerPackEvent
+    data class SelectingTrayIcon(val isSelectingTrayIcon: Boolean) : StickerPackEvent
+    data class DoneSeedingStickers(val isSeeingStickers: Boolean) : StickerPackEvent
+    data class DoneSelectingTrayIcon(val isSelectingTrayIcon: Boolean) : StickerPackEvent
 }
