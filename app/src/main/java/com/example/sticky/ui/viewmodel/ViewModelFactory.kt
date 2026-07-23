@@ -10,7 +10,7 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
         val db = DatabaseProvider.getDatabase(context)
         return when {
             modelClass.isAssignableFrom(StickerViewModel::class.java) -> {
-                StickerViewModel(db.stickerDao) as T
+                StickerViewModel(db.stickerDao, db.stickerPackDao) as T
             }
             modelClass.isAssignableFrom(StickerPackViewModel::class.java) -> {
                 StickerPackViewModel(db.stickerPackDao) as T

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sticky.event.StickerEvent
 import com.example.sticky.model.database.dao.StickerDAO
+import com.example.sticky.model.database.dao.StickerPackDAO
 import com.example.sticky.model.database.table.StickerTable
 import com.example.sticky.state.StickerState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,7 +17,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class StickerViewModel(
-    private val dao : StickerDAO
+    private val dao : StickerDAO,
+    private val packDao: StickerPackDAO
 ) : ViewModel() {
     // handles user input like name, author, etc
     private val _state = MutableStateFlow(StickerState())
@@ -82,14 +84,23 @@ class StickerViewModel(
                 val packId = _packId.value
                 
                 if (packId != -1) {
-                    addSticker(
-                        StickerTable(
-                            packId = packId,
-                            fileName = name,
-                            emojis = emojis,
-                            isAnimated = isAnimated
+                    viewModelScope.launch {
+                        // 1. Insert the new sticker
+                        dao.insertSticker(
+                            StickerTable(
+                                packId = packId,
+                                fileName = name,
+                                emojis = emojis,
+                                isAnimated = isAnimated
+                            )
                         )
-                    )
+                        // 2. Increment the imageDataVersion of the pack so WhatsApp sees the update
+                        packDao.getStickerPack(packId)?.let { pack ->
+                            packDao.insertStickerPack(
+                                pack.copy(imageDataVersion = pack.imageDataVersion + 1)
+                            )
+                        }
+                    }
                 }
             }
         }

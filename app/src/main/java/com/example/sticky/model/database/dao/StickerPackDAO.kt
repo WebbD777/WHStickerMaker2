@@ -19,9 +19,18 @@ interface StickerPackDAO {
     @Query("SELECT * FROM sticker_pack WHERE packId = :packId")
     fun getStickerPackSync(packId: Int): StickerPackTable?
 
+    @Query("SELECT * FROM sticker_pack WHERE packId = :packId")
+    suspend fun getStickerPack(packId: Int): StickerPackTable?
+
     @Query("DELETE FROM sticker_pack WHERE packId = :packId")
     suspend fun deleteStickerPack(packId: Int)
 
     @Upsert
     suspend fun insertStickerPack(stickerPack: StickerPackTable)
+
+    @Query("UPDATE sticker_pack SET trayIcon = :trayIcon, imageDataVersion = imageDataVersion + 1 WHERE packId = :packId")
+    suspend fun updateTrayIcon(packId: Int, trayIcon: String)
+
+    @Query("SELECT fileName FROM sticker WHERE packId = :packId ORDER BY createdAt ASC LIMIT 1")
+    suspend fun getFirstStickerPath(packId: Int): String?
 }

@@ -42,6 +42,7 @@ class StickerPackViewModel(
                 // using a coroutine
                 viewModelScope.launch {
                     dao.insertStickerPack(stickerPack)
+                    
                 }
 
                 // Done adding pack
