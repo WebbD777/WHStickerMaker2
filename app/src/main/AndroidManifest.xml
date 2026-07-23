@@ -22,6 +22,17 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <provider
+            android:name=".provider.StickerContentProvider"
+            android:authorities="${applicationId}.stickercontentprovider"
+            android:enabled="true"
+            android:exported="true"
+            android:readPermission="com.whatsapp.sticker.READ" />
+
+        <meta-data
+            android:name="com.whatsapp.sticker.AUTHORITY"
+            android:value="${applicationId}.stickercontentprovider" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

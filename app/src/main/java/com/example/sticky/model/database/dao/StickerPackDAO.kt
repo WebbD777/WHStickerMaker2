@@ -9,8 +9,15 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface StickerPackDAO {
 
+    //for "reactive" programming—it keeps an open connection to the database and emits new values whenever the data changes. This is perfect for your UI
     @Query("SELECT * FROM sticker_pack ORDER BY createdAt DESC")
     fun getAllStickerPacks(): Flow<List<StickerPackTable>>
+
+    @Query("SELECT * FROM sticker_pack ORDER BY createdAt DESC")
+    fun getAllStickerPacksSync(): List<StickerPackTable>
+
+    @Query("SELECT * FROM sticker_pack WHERE packId = :packId")
+    fun getStickerPackSync(packId: Int): StickerPackTable?
 
     @Query("DELETE FROM sticker_pack WHERE packId = :packId")
     suspend fun deleteStickerPack(packId: Int)
