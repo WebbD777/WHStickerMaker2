@@ -49,6 +49,40 @@ fun convertImageToSticker(context: Context, sourceUri: Uri?, packId: Int, sticke
 }
 
 /**
+ * Converts a source image to a 96x96 WebP tray icon and saves it in the pack's directory.
+ */
+fun convertImageToTrayIcon(context: Context, sourceUri: Uri?, packId: Int): String? {
+    if (sourceUri == null) return null
+    var inputStream: InputStream? = null
+    return try {
+        inputStream = context.contentResolver.openInputStream(sourceUri)
+        val originalBitmap = BitmapFactory.decodeStream(inputStream) ?: return null
+
+        // Tray icon must be 96x96
+        val resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, 96, 96, true)
+
+        val baseDir = File(context.filesDir, "packs")
+        val packDir = File(baseDir, packId.toString())
+        if (!packDir.exists()) {
+            packDir.mkdirs()
+        }
+
+        val fileName = "tray.webp"
+        val outputFile = File(packDir, fileName)
+
+        // Tray icon must be < 50KB
+        val isCompressed = compressToWebP(resizedBitmap, outputFile, maxFileSize = 50 * 1024)
+
+        if (isCompressed) "$packId/$fileName" else null
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    } finally {
+        inputStream?.close()
+    }
+}
+
+/**
  * Generates a safe Content URI for a sticker using the relative path stored in the DB.
  */
 fun getStickerUri(context: Context, relativePath: String): Uri {
@@ -61,10 +95,9 @@ fun getStickerUri(context: Context, relativePath: String): Uri {
 }
 
 /**
- * Compresses the bitmap to WebP format, dynamically reducing quality if file size exceeds 100KB.
+ * Compresses the bitmap to WebP format, dynamically reducing quality if file size exceeds limit.
  */
-private fun compressToWebP(bitmap: Bitmap, targetFile: File): Boolean {
-    val maxFileSize = 100 * 1024 // 100 KB in Bytes
+private fun compressToWebP(bitmap: Bitmap, targetFile: File, maxFileSize: Int = 100 * 1024): Boolean {
     var quality = 90
     val stream = ByteArrayOutputStream()
 
@@ -74,7 +107,7 @@ private fun compressToWebP(bitmap: Bitmap, targetFile: File): Boolean {
         else -> @Suppress("DEPRECATION") Bitmap.CompressFormat.WEBP
     }
 
-    // Dynamically scale down quality if it leaks over 100KB limit
+    // Dynamically scale down quality if it leaks over limit
     do {
         stream.reset()
         bitmap.compress(compressFormat, quality, stream)
@@ -86,6 +119,7 @@ private fun compressToWebP(bitmap: Bitmap, targetFile: File): Boolean {
         FileOutputStream(targetFile).use { fos ->
             fos.write(stream.toByteArray())
         }
+        android.util.Log.d("ImageToSticker", "Saved WebP to ${targetFile.absolutePath}, size: ${targetFile.length()} bytes")
         true
     } catch (e: Exception) {
         e.printStackTrace()

@@ -50,7 +50,12 @@ import com.example.sticky.model.database.table.StickerPackTable
 import com.example.sticky.ui.navigation.Screen
 import com.example.sticky.ui.viewmodel.StickerPackViewModel
 import com.example.sticky.ui.viewmodel.ViewModelFactory
+import com.example.sticky.utils.image.convertImageToTrayIcon
 import com.example.sticky.utils.image.getStickerUri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 @Composable
 fun StickerPackListScreen(
@@ -92,11 +97,14 @@ fun StickerPackListScreen(
 @Composable
 fun StickerPackCard(pack: StickerPackTable, onCardClick: () -> Unit, modifier: Modifier = Modifier){
     val context = LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_CANCELED) {
-            Toast.makeText(context, "Pack could not be added", Toast.LENGTH_SHORT).show()
+        // WhatsApp doesn't always return Activity.RESULT_OK even on success.
+        // We can check for error extras if needed, but for now we'll just let it be.
+        if (result.resultCode == Activity.RESULT_OK) {
+            Toast.makeText(context, "Pack added successfully", Toast.LENGTH_SHORT).show()
         }
     }
     val trayPath by produceState(initialValue = pack.trayIcon, pack.trayIcon, pack.packId) {
@@ -135,7 +143,38 @@ fun StickerPackCard(pack: StickerPackTable, onCardClick: () -> Unit, modifier: M
                 )
             }
             SendPackToWHButton(onClick = {
-                addPackToWhatsApp(launcher, context, pack.packId, pack.name)
+                scope.launch {
+                    val db = DatabaseProvider.getDatabase(context)
+                    val stickers = withContext(Dispatchers.IO) {
+                        db.stickerDao.getStickersByPackSync(pack.packId)
+                    }
+                    
+                    if (stickers.size < 3) {
+                        Toast.makeText(context, "You need at least 3 stickers in a pack", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+
+                    // Ensure tray icon exists and DB is updated
+                    val trayFile = File(File(context.filesDir, "packs/${pack.packId}"), "tray.webp")
+                    if (pack.trayIcon.isEmpty() || !trayFile.exists()) {
+                        val stickersInPack = withContext(Dispatchers.IO) {
+                            db.stickerDao.getStickersByPackSync(pack.packId)
+                        }
+                        if (stickersInPack.isNotEmpty()) {
+                            val firstStickerFile = File(context.filesDir, "packs/${stickersInPack[0].fileName}")
+                            if (firstStickerFile.exists()) {
+                                withContext(Dispatchers.IO) {
+                                    val trayPath = convertImageToTrayIcon(context, Uri.fromFile(firstStickerFile), pack.packId)
+                                    if (trayPath != null) {
+                                        db.stickerPackDao.updateTrayIcon(pack.packId, trayPath)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    addPackToWhatsApp(launcher, context, pack.packId, pack.name)
+                }
             })
         }
     }

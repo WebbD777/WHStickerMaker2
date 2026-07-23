@@ -78,12 +78,25 @@ class StickerContentProvider : ContentProvider() {
         selectionArgs: Array<out String>?,
         sortOrder: String?
     ): Cursor? {
+        Log.d("StickerContentProvider", "query: $uri")
         return try {
             when (MATCHER.match(uri)) {
-                METADATA_CODE -> getPackForAllStickerPacks(uri)
-                METADATA_CODE_FOR_SINGLE_PACK -> getCursorForSingleStickerPack(uri)
-                STICKERS_CODE -> getStickersForAStickerPack(uri)
-                else -> throw IllegalArgumentException("Unknown URI: $uri")
+                METADATA_CODE -> {
+                    Log.d("StickerContentProvider", "Matching METADATA_CODE")
+                    getPackForAllStickerPacks(uri)
+                }
+                METADATA_CODE_FOR_SINGLE_PACK -> {
+                    Log.d("StickerContentProvider", "Matching METADATA_CODE_FOR_SINGLE_PACK")
+                    getCursorForSingleStickerPack(uri)
+                }
+                STICKERS_CODE -> {
+                    Log.d("StickerContentProvider", "Matching STICKERS_CODE")
+                    getStickersForAStickerPack(uri)
+                }
+                else -> {
+                    Log.d("StickerContentProvider", "No match for URI: $uri")
+                    throw IllegalArgumentException("Unknown URI: $uri")
+                }
             }
         } catch (e: Exception) {
             Log.e("StickerContentProvider", "Error querying sticker packs", e)
@@ -125,6 +138,7 @@ class StickerContentProvider : ContentProvider() {
     }
 
     private fun getStickerPackInfo(uri: Uri, stickerPackList: List<StickerPackTable>): Cursor {
+        Log.d("StickerContentProvider", "getStickerPackInfo for ${stickerPackList.size} packs")
         val cursor = MatrixCursor(
             arrayOf(
                 STICKER_PACK_IDENTIFIER_IN_QUERY,
@@ -147,16 +161,17 @@ class StickerContentProvider : ContentProvider() {
             builder.add(stickerPack.packId.toString())
             builder.add(stickerPack.name)
             builder.add("Sticky User") // Default publisher
-            builder.add(stickerPack.trayIcon.substringAfterLast('/'))
+            val trayIcon = stickerPack.trayIcon.substringAfterLast('/')
+            builder.add(if (trayIcon.isEmpty()) "tray.webp" else trayIcon)
             builder.add("") // androidPlayStoreLink
             builder.add("") // iosAppStoreLink
             builder.add("") // publisherEmail
             builder.add("") // publisherWebsite
             builder.add("") // privacyPolicyWebsite
             builder.add("") // licenseAgreementWebsite
-            builder.add(stickerPack.imageDataVersion)
-            builder.add(0) // avoidCache
-            builder.add(if (stickerPack.isAnimated) 1 else 0)
+            builder.add(stickerPack.imageDataVersion.toString())
+            builder.add("0") // avoidCache
+            builder.add(if (stickerPack.isAnimated) "1" else "0")
         }
         cursor.setNotificationUri(context!!.contentResolver, uri)
         return cursor
@@ -164,6 +179,7 @@ class StickerContentProvider : ContentProvider() {
 
     private fun getStickersForAStickerPack(uri: Uri): Cursor {
         val identifierStr = uri.lastPathSegment ?: throw IllegalArgumentException("Invalid pack identifier")
+        Log.d("StickerContentProvider", "getStickersForAStickerPack: $identifierStr")
         val identifier = identifierStr.toIntOrNull() ?: throw IllegalArgumentException("Invalid pack identifier")
         val stickerDao = DatabaseProvider.getDatabase(context!!).stickerDao
         val stickers = stickerDao.getStickersByPackSync(identifier)
@@ -171,13 +187,13 @@ class StickerContentProvider : ContentProvider() {
         val cursor = MatrixCursor(
             arrayOf(
                 STICKER_FILE_NAME_IN_QUERY,
-                STICKER_FILE_EMOJI_IN_QUERY,
-                STICKER_FILE_ACCESSIBILITY_TEXT_IN_QUERY
+                STICKER_FILE_EMOJI_IN_QUERY
             )
         )
         for (sticker in stickers) {
             val name = sticker.fileName.substringAfterLast('/')
-            cursor.addRow(arrayOf(name, sticker.emojis, "sticker"))
+            val emojis = if (sticker.emojis.isEmpty()) "☕" else sticker.emojis
+            cursor.addRow(arrayOf(name, emojis))
         }
         cursor.setNotificationUri(context!!.contentResolver, uri)
         return cursor
@@ -190,6 +206,7 @@ class StickerContentProvider : ContentProvider() {
         }
         val fileName = pathSegments.last()
         val identifier = pathSegments[pathSegments.size - 2]
+        Log.d("StickerContentProvider", "getImageAsset: $identifier / $fileName")
 
         // ImageToSticker saves to "packs/packId/fileName"
         val baseDir = File(context!!.filesDir, "packs")

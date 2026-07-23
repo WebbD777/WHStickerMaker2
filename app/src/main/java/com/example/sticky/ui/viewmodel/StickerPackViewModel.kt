@@ -34,7 +34,7 @@ class StickerPackViewModel(
                     name = name,
                     trayIcon = trayIcon,
                     imageDataVersion = imageDataVersion,
-                    isAnimated = true,
+                    isAnimated = isAnimated,
                     createdAt = createdAt
                 )
 

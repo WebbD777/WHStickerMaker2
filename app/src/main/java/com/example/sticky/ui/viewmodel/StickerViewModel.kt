@@ -96,7 +96,7 @@ class StickerViewModel(
                         )
                         // 2. Increment the imageDataVersion of the pack and update tray icon if empty
                         packDao.getStickerPack(packId)?.let { pack ->
-                            val newTrayIcon = if (pack.trayIcon.isEmpty()) name else pack.trayIcon
+                            val newTrayIcon = if (pack.trayIcon.isEmpty()) "$packId/tray.webp" else pack.trayIcon
                             packDao.insertStickerPack(
                                 pack.copy(
                                     imageDataVersion = pack.imageDataVersion + 1,

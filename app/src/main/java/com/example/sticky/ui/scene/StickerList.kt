@@ -77,8 +77,12 @@ fun ImageSelector(
                 viewModel.onEvent(StickerEvent.ImageSelected(uri))
                 val relativePath = convertImageToSticker(context, uri, packId, stickers.size)
                 if (relativePath != null) {
+                    // If this is the first sticker, also create a proper 96x96 tray icon
+                    if (stickers.isEmpty()) {
+                        com.example.sticky.utils.image.convertImageToTrayIcon(context, uri, packId)
+                    }
                     viewModel.onEvent(StickerEvent.SetStickerFileName(relativePath))
-                    viewModel.onEvent(StickerEvent.SetStickerEmojis(""))
+                    viewModel.onEvent(StickerEvent.SetStickerEmojis("☕")) // WhatsApp requires at least 1 emoji
                     viewModel.onEvent(StickerEvent.SetStickerIsAnimated(false))
                     viewModel.onEvent(StickerEvent.SaveSticker)
                 }
