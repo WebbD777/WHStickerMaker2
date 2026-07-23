@@ -94,10 +94,14 @@ class StickerViewModel(
                                 isAnimated = isAnimated
                             )
                         )
-                        // 2. Increment the imageDataVersion of the pack so WhatsApp sees the update
+                        // 2. Increment the imageDataVersion of the pack and update tray icon if empty
                         packDao.getStickerPack(packId)?.let { pack ->
+                            val newTrayIcon = if (pack.trayIcon.isEmpty()) name else pack.trayIcon
                             packDao.insertStickerPack(
-                                pack.copy(imageDataVersion = pack.imageDataVersion + 1)
+                                pack.copy(
+                                    imageDataVersion = pack.imageDataVersion + 1,
+                                    trayIcon = newTrayIcon
+                                )
                             )
                         }
                     }

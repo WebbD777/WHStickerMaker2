@@ -1,13 +1,18 @@
 package com.example.sticky.ui.scene
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -38,11 +44,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.sticky.BuildConfig
+import com.example.sticky.data.DatabaseProvider
 import com.example.sticky.event.StickerPackEvent
 import com.example.sticky.model.database.table.StickerPackTable
 import com.example.sticky.ui.navigation.Screen
 import com.example.sticky.ui.viewmodel.StickerPackViewModel
 import com.example.sticky.ui.viewmodel.ViewModelFactory
+import com.example.sticky.utils.image.getStickerUri
 
 @Composable
 fun StickerPackListScreen(
@@ -75,12 +83,6 @@ fun StickerPackListScreen(
             )
         }
 
-        viewModel.onEvent(StickerPackEvent.SelectingTrayIcon(true))
-
-        if (state.isSelectingTrayIcon){
-
-        }
-
         AddPackFAB(onClick = {
             viewModel.onEvent(StickerPackEvent.ShowDialog(true))
         })
@@ -90,28 +92,52 @@ fun StickerPackListScreen(
 @Composable
 fun StickerPackCard(pack: StickerPackTable, onCardClick: () -> Unit, modifier: Modifier = Modifier){
     val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_CANCELED) {
+            Toast.makeText(context, "Pack could not be added", Toast.LENGTH_SHORT).show()
+        }
+    }
+    val trayPath by produceState(initialValue = pack.trayIcon, pack.trayIcon, pack.packId) {
+        if (pack.trayIcon.isEmpty()) {
+            val dao = DatabaseProvider.getDatabase(context).stickerPackDao
+            value = dao.getFirstStickerPath(pack.packId) ?: ""
+        }
+    }
+    val uri = if (trayPath.isNotEmpty()) getStickerUri(context, trayPath) else Uri.EMPTY
     Card(modifier = modifier
         .fillMaxWidth()
         .height(100.dp)
         .clickable{onCardClick()}) {
-        Column {
-            Text(
-                text = pack.name,
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Card(
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                StickerCard(
-                    uri = uri,
-                    modifier = Modifier.aspectRatio(1f)
+                Card(
+                    modifier = Modifier
+                        .height(80.dp)
+                        .aspectRatio(1f),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    TrayIconCard(
+                        uri = uri,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                Text(
+                    text = pack.name,
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.headlineSmall
                 )
             }
+            SendPackToWHButton(onClick = {
+                addPackToWhatsApp(launcher, context, pack.packId, pack.name)
+            })
         }
-        SendPackToWHButton(onClick = {
-            addPackToWhatsApp(context, pack.packId, pack.name)
-        })
     }
 }
 
@@ -175,7 +201,7 @@ fun SendPackToWHButton(onClick: () -> Unit){
     }
 }
 
-fun addPackToWhatsApp(context: Context, packId: Int, packName: String) {
+fun addPackToWhatsApp(launcher: ActivityResultLauncher<Intent>, context: Context, packId: Int, packName: String) {
     val intent = Intent().apply {
         action = "com.whatsapp.intent.action.ENABLE_STICKER_PACK"
         putExtra("sticker_pack_id", packId.toString())
@@ -184,15 +210,12 @@ fun addPackToWhatsApp(context: Context, packId: Int, packName: String) {
     }
 
     try {
-        context.startActivity(intent)
+        launcher.launch(intent)
     } catch (e: ActivityNotFoundException) {
         Toast.makeText(context, "WhatsApp is not installed", Toast.LENGTH_SHORT).show()
+    } catch (e: Exception) {
+        Toast.makeText(context, "Pack could not be added", Toast.LENGTH_SHORT).show()
     }
-}
-
-@Composable
-fun TrayIcon(){
-
 }
 
 @Composable
@@ -200,10 +223,23 @@ fun TrayIconCard(
     uri: Uri,
     modifier: Modifier = Modifier
 ) {
-    AsyncImage(
-        model = uri,
-        contentDescription = "Tray Icon",
-        contentScale = ContentScale.Crop,
-        modifier = modifier
-    )
+    if (uri != Uri.EMPTY) {
+        AsyncImage(
+            model = uri,
+            contentDescription = "Tray Icon",
+            contentScale = ContentScale.Crop,
+            modifier = modifier
+        )
+    } else {
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "No tray icon",
+                tint = MaterialTheme.colorScheme.outline
+            )
+        }
+    }
 }
