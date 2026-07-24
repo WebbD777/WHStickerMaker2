@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -194,17 +195,19 @@ fun SendPackToWHButton(onClick: () -> Unit){
         modifier = Modifier
             .fillMaxSize()
             .padding(1.dp),
-        contentAlignment = Alignment.TopEnd
+        contentAlignment = Alignment.CenterEnd
     ) {
         FloatingActionButton(
             onClick = onClick,
             shape = RoundedCornerShape(4.dp), // Less round/sharper corners
             modifier = Modifier
-                .padding(6.dp),
+                .padding(12.dp),
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.secondary
         ) {
-            Text(text = "Add/Update Pack")
+            Text(text = "Add/Update Pack",
+                modifier = Modifier.padding(horizontal = 16.dp))
+
         }
     }
 }
@@ -244,7 +247,7 @@ fun TrayIconCard(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Add,
+                imageVector = Icons.Default.Clear,
                 contentDescription = "No tray icon",
                 tint = MaterialTheme.colorScheme.outline
             )
