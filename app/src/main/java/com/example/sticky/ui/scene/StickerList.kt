@@ -1,6 +1,7 @@
 package com.example.sticky.ui.scene
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -40,8 +41,6 @@ import com.example.sticky.utils.image.convertImageToSticker
 import com.example.sticky.utils.image.getStickerUri
 import com.example.sticky.ui.viewmodel.StickerViewModel
 import com.example.sticky.ui.viewmodel.ViewModelFactory
-import com.example.sticky.utils.image.convertImageToSticker
-import java.io.File
 
 @Composable
 fun CenterHelloWorldScreen(navController: NavController) {
@@ -97,11 +96,16 @@ fun ImageSelector(
         StickerGridScreen(stickers = stickers)
 
         AddstickerButton(onClick = {
+            if (stickers.size < 30){
             viewModel.onEvent(StickerEvent.SelectingImage(true))
             singlePhotoPickerLauncher.launch(
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
             )
-        })
+        }else{
+            Toast.makeText(context, "Cannot have more than 30 stickers", Toast.LENGTH_SHORT).show()
+        }
+        }
+        )
     }
 }
 

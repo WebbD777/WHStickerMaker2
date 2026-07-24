@@ -13,7 +13,7 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
                 StickerViewModel(db.stickerDao, db.stickerPackDao) as T
             }
             modelClass.isAssignableFrom(StickerPackViewModel::class.java) -> {
-                StickerPackViewModel(db.stickerPackDao) as T
+                StickerPackViewModel(db.stickerPackDao, db.stickerDao) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

@@ -1,5 +1,8 @@
 package com.example.sticky.event
 
+import android.content.Context
+import com.example.sticky.model.database.table.StickerPackTable
+
 sealed interface StickerPackEvent {
     data object SaveStickerPack : StickerPackEvent
     data class SetStickerPackName(val name: String) : StickerPackEvent
@@ -13,5 +16,5 @@ sealed interface StickerPackEvent {
     data class SelectingTrayIcon(val isSelectingTrayIcon: Boolean) : StickerPackEvent
     data class DoneSeedingStickers(val isSeeingStickers: Boolean) : StickerPackEvent
     data class DoneSelectingTrayIcon(val isSelectingTrayIcon: Boolean) : StickerPackEvent
-
+    data class ExportToWhatsApp(val pack: StickerPackTable, val context: Context, val onResult: (Boolean, String?) -> Unit) : StickerPackEvent
 }

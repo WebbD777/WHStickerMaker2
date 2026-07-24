@@ -38,24 +38,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.sticky.BuildConfig
-import com.example.sticky.data.DatabaseProvider
 import com.example.sticky.event.StickerPackEvent
 import com.example.sticky.model.database.table.StickerPackTable
 import com.example.sticky.ui.navigation.Screen
 import com.example.sticky.ui.viewmodel.StickerPackViewModel
 import com.example.sticky.ui.viewmodel.ViewModelFactory
-import com.example.sticky.utils.image.convertImageToTrayIcon
 import com.example.sticky.utils.image.getStickerUri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
 
 @Composable
 fun StickerPackListScreen(
@@ -72,6 +65,7 @@ fun StickerPackListScreen(
         ListStickerPacks(
             navController = navController,
             packInfoList = stickerPacks,
+            viewModel = viewModel,
             modifier = Modifier.fillMaxSize()
         )
 
@@ -95,9 +89,8 @@ fun StickerPackListScreen(
 }
 
 @Composable
-fun StickerPackCard(pack: StickerPackTable, onCardClick: () -> Unit, modifier: Modifier = Modifier){
+fun StickerPackCard(pack: StickerPackTable, onCardClick: () -> Unit, viewModel: StickerPackViewModel, modifier: Modifier = Modifier){
     val context = LocalContext.current
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -109,8 +102,7 @@ fun StickerPackCard(pack: StickerPackTable, onCardClick: () -> Unit, modifier: M
     }
     val trayPath by produceState(initialValue = pack.trayIcon, pack.trayIcon, pack.packId) {
         if (pack.trayIcon.isEmpty()) {
-            val dao = DatabaseProvider.getDatabase(context).stickerPackDao
-            value = dao.getFirstStickerPath(pack.packId) ?: ""
+            value = viewModel.getFirstStickerPath(pack.packId) ?: ""
         }
     }
     val uri = if (trayPath.isNotEmpty()) getStickerUri(context, trayPath) else Uri.EMPTY
@@ -143,38 +135,13 @@ fun StickerPackCard(pack: StickerPackTable, onCardClick: () -> Unit, modifier: M
                 )
             }
             SendPackToWHButton(onClick = {
-                scope.launch {
-                    val db = DatabaseProvider.getDatabase(context)
-                    val stickers = withContext(Dispatchers.IO) {
-                        db.stickerDao.getStickersByPackSync(pack.packId)
+                viewModel.onEvent(StickerPackEvent.ExportToWhatsApp(pack, context) { success, message ->
+                    if (success) {
+                        addPackToWhatsApp(launcher, context, pack.packId, pack.name)
+                    } else if (message != null) {
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                     }
-                    
-                    if (stickers.size < 3) {
-                        Toast.makeText(context, "You need at least 3 stickers in a pack", Toast.LENGTH_SHORT).show()
-                        return@launch
-                    }
-
-                    // Ensure tray icon exists and DB is updated
-                    val trayFile = File(File(context.filesDir, "packs/${pack.packId}"), "tray.webp")
-                    if (pack.trayIcon.isEmpty() || !trayFile.exists()) {
-                        val stickersInPack = withContext(Dispatchers.IO) {
-                            db.stickerDao.getStickersByPackSync(pack.packId)
-                        }
-                        if (stickersInPack.isNotEmpty()) {
-                            val firstStickerFile = File(context.filesDir, "packs/${stickersInPack[0].fileName}")
-                            if (firstStickerFile.exists()) {
-                                withContext(Dispatchers.IO) {
-                                    val trayPath = convertImageToTrayIcon(context, Uri.fromFile(firstStickerFile), pack.packId)
-                                    if (trayPath != null) {
-                                        db.stickerPackDao.updateTrayIcon(pack.packId, trayPath)
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    addPackToWhatsApp(launcher, context, pack.packId, pack.name)
-                }
+                })
             })
         }
     }
@@ -184,6 +151,7 @@ fun StickerPackCard(pack: StickerPackTable, onCardClick: () -> Unit, modifier: M
 fun ListStickerPacks(
     navController: NavController,
     packInfoList: List<StickerPackTable>,
+    viewModel: StickerPackViewModel,
     modifier: Modifier = Modifier
 ){
     LazyColumn(
@@ -193,6 +161,7 @@ fun ListStickerPacks(
             StickerPackCard(
                 pack = pack,
                 modifier = Modifier.padding(8.dp),
+                viewModel = viewModel,
                 onCardClick = {
                   navController.navigate(Screen.StickerScreen.createRoute(pack.packId))
                 }
