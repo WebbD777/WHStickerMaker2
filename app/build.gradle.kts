@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.media3.database)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.canhub.cropper)
     implementation(libs.androidx.room3.common.jvm)
     implementation(libs.androidx.room3.runtime)
     ksp(libs.androidx.room3.compiler)

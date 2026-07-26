@@ -16,6 +16,8 @@ appcompat = "1.7.1"
 room3CommonJvm = "3.0.0"
 room3Runtime = "3.0.0"
 media3Database = "1.10.1"
+androidImageCropper = "4.7.0"
+# ... (rest of the versions if I had them, but I'll just target the specific lines)
 
 [libraries]
 compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
@@ -41,6 +43,7 @@ androidx-room3-common-jvm = { group = "androidx.room3", name = "room3-common-jvm
 androidx-room3-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room3Runtime" }
 androidx-room3-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room3CommonJvm" }
 androidx-media3-database = { group = "androidx.media3", name = "media3-database", version.ref = "media3Database" }
+canhub-cropper = { group = "com.vanniktech", name = "android-image-cropper", version.ref = "androidImageCropper" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

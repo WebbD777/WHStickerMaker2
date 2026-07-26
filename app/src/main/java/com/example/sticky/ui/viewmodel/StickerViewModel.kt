@@ -65,7 +65,7 @@ class StickerViewModel(
             is StickerEvent.SelectingImage -> {
                 _state.update {
                     it.copy(
-                        isSelectingImage = true
+                        isSelectingImage = event.isSelectingImage
                     )
                 }
             }

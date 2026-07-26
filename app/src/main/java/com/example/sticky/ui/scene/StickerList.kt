@@ -26,7 +26,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -41,6 +43,7 @@ import com.example.sticky.utils.image.convertImageToSticker
 import com.example.sticky.utils.image.getStickerUri
 import com.example.sticky.ui.viewmodel.StickerViewModel
 import com.example.sticky.ui.viewmodel.ViewModelFactory
+import com.example.sticky.utils.image.CanHubCropView
 
 @Composable
 fun CenterHelloWorldScreen(navController: NavController) {
@@ -74,17 +77,6 @@ fun ImageSelector(
         onResult = { uri ->
             if (uri != null) {
                 viewModel.onEvent(StickerEvent.ImageSelected(uri))
-                val relativePath = convertImageToSticker(context, uri, packId, stickers.size)
-                if (relativePath != null) {
-                    // If this is the first sticker, also create a proper 96x96 tray icon
-                    if (stickers.isEmpty()) {
-                        com.example.sticky.utils.image.convertImageToTrayIcon(context, uri, packId)
-                    }
-                    viewModel.onEvent(StickerEvent.SetStickerFileName(relativePath))
-                    viewModel.onEvent(StickerEvent.SetStickerEmojis("☕")) // WhatsApp requires at least 1 emoji
-                    viewModel.onEvent(StickerEvent.SetStickerIsAnimated(false))
-                    viewModel.onEvent(StickerEvent.SaveSticker)
-                }
             } else {
                 viewModel.onEvent(StickerEvent.SelectingImage(false))
             }
@@ -93,19 +85,65 @@ fun ImageSelector(
 
     // Layout wrapping both the Grid and the Floating Button
     Box(modifier = Modifier.fillMaxSize()) {
-        StickerGridScreen(stickers = stickers)
+        if (state.imageUri != Uri.EMPTY) {
+            // Crop
+            Box(modifier = Modifier.fillMaxSize()) {
+                var cropper by remember { mutableStateOf<com.canhub.cropper.CropImageView?>(null) }
 
-        AddstickerButton(onClick = {
-            if (stickers.size < 30){
-            viewModel.onEvent(StickerEvent.SelectingImage(true))
-            singlePhotoPickerLauncher.launch(
-                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-            )
-        }else{
-            Toast.makeText(context, "Cannot have more than 30 stickers", Toast.LENGTH_SHORT).show()
+                CanHubCropView(
+                    imageUri = state.imageUri,
+                    modifier = Modifier.fillMaxSize()
+                ) { view ->
+                    cropper = view
+                    view.setOnCropImageCompleteListener { _, result ->
+                        if (result.isSuccessful) {
+                            val croppedUri = result.uriContent
+                            val relativePath = convertImageToSticker(context, croppedUri, packId, stickers.size)
+                            if (relativePath != null) {
+                                // If this is the first sticker, also create a proper 96x96 tray icon
+                                if (stickers.isEmpty()) {
+                                    com.example.sticky.utils.image.convertImageToTrayIcon(context, croppedUri, packId)
+                                }
+                                viewModel.onEvent(StickerEvent.SetStickerFileName(relativePath))
+                                viewModel.onEvent(StickerEvent.SetStickerEmojis("☕")) // WhatsApp requires at least 1 emoji
+                                viewModel.onEvent(StickerEvent.SetStickerIsAnimated(false))
+                                viewModel.onEvent(StickerEvent.SaveSticker)
+                            }
+                            // Return to grid
+                            viewModel.onEvent(StickerEvent.ImageSelected(Uri.EMPTY))
+                        } else {
+                            viewModel.onEvent(StickerEvent.ImageSelected(Uri.EMPTY))
+                        }
+                    }
+                }
+
+                // Save button for the cropper
+                FloatingActionButton(
+                    onClick = { cropper?.croppedImageAsync() },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(Icons.Filled.Add, "Save Sticker")
+                }
+            }
+        } else {
+            // --- GRID MODE ---
+            StickerGridScreen(stickers = stickers)
+
+            AddstickerButton(onClick = {
+                if (stickers.size < 30) {
+                    viewModel.onEvent(StickerEvent.SelectingImage(true))
+                    singlePhotoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                } else {
+                    Toast.makeText(context, "Cannot have more than 30 stickers", Toast.LENGTH_SHORT).show()
+                }
+            })
         }
-        }
-        )
     }
 }
 
@@ -167,3 +205,4 @@ fun AddstickerButton(onClick: () -> Unit) {
         }
     }
 }
+
