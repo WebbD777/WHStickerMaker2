@@ -37,11 +37,11 @@ class StickerViewModel(
         _packId.value = id
     }
 
-    fun addSticker(sticker: StickerTable) {
-        viewModelScope.launch {
-            dao.insertSticker(sticker)
-        }
-    }
+//    fun addSticker(sticker: StickerTable) {
+//        viewModelScope.launch {
+//            dao.insertSticker(sticker)
+//        }
+//    }
 
     fun onEvent(event: StickerEvent) {
         when (event) {

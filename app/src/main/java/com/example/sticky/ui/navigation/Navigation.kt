@@ -6,7 +6,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.sticky.ui.scene.CenterHelloWorldScreen
 import com.example.sticky.ui.scene.ImageSelector
 import com.example.sticky.ui.scene.StickerPackListScreen
 
@@ -26,7 +25,8 @@ fun Navigation() {
             ImageSelector(packId = packId)
         }
         composable(Screen.ImagePickerScreen.route) {
-            CenterHelloWorldScreen(navController)
+        //    CenterHelloWorldScreen(navController)
+            // Test navigation
         }
     }
 }
